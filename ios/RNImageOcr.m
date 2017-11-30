@@ -1,5 +1,18 @@
 
 #import "RNImageOcr.h"
+#import <G8Tesseract.h>
+#import <UIImage+G8Filters.h>
+
+#define ID @"ID:"
+#define ID_LENGTH 11
+#define DOB @"DOB:"
+#define DOB_LENGTH 8
+#define ISSUED @"ISSUED:"
+#define ISSUED_LENGTH 8
+#define EXPIRES @"EXPIRES:"
+#define EXPIRES_LENGTH 8
+#define SEX @"SEX:"
+#define SEX_LENGTH 1
 
 @implementation RNImageOcr
 
@@ -15,7 +28,7 @@ RCT_EXPORT_METHOD(getStringFromUrl:(NSString *)imageURL resolver:(RCTPromiseReso
     resolve([self getStringfromUrl:imageURL]);
 }
 
-- (NSDictionary*)getStringfromUrl:(NSString*) Url{
+- (NSString*)getStringfromUrl:(NSString*) Url{
     
     NSURL *url = [NSURL URLWithString:Url];
     NSData *imageData = [NSData dataWithContentsOfURL:url];
@@ -28,12 +41,14 @@ RCT_EXPORT_METHOD(getStringFromUrl:(NSString *)imageURL resolver:(RCTPromiseReso
     tesseract4.pageSegmentationMode = G8PageSegmentationModeAuto;
     tesseract4.maximumRecognitionTime = 60.0;
     tesseract4.charWhitelist = @"-:0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
-    [tesseract4 setImage:[[ret g8_blackAndWhite ] g8_grayScale]];
+    //[tesseract4 setImage:[[ret g8_blackAndWhite ] g8_grayScale]];
+    [tesseract4 setImage:ret];
+    tesseract4.sourceResolution = 2400;
     [tesseract4 recognize];
     NSString *srr = [self getFormatedStringfromString:[[tesseract4.recognizedText stringByReplacingOccurrencesOfString:@": " withString:@":"] stringByReplacingOccurrencesOfString:@"lSSUED" withString:@"ISSUED"]];
     srr = [srr stringByReplacingOccurrencesOfString:@":" withString:@": "];
     NSDictionary *dict = [[NSDictionary alloc] initWithObjectsAndKeys:tesseract4.recognizedText,@"raw",srr,@"format", nil];
-    return dict;
+    return tesseract4.recognizedText;
 }
 - (NSString*)getFormatedStringfromString:(NSString*)str {
     NSMutableString *orgStr = [[NSMutableString alloc] init];
@@ -60,4 +75,6 @@ RCT_EXPORT_METHOD(getStringFromUrl:(NSString *)imageURL resolver:(RCTPromiseReso
     
 }
 @end
+
+
   
